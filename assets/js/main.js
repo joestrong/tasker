@@ -23,6 +23,7 @@ var TaskView = Backbone.View.extend({
 			this.model.set('done', false);
 			label.style.textDecoration = 'none';
 		}
+		this.model.save();
 	}
 });
 var TaskCollectionView = Backbone.View.extend({
@@ -47,9 +48,10 @@ var TaskCollectionView = Backbone.View.extend({
 		this.$el.append('<button id="btnNew" class="btn">New task</button>');
 	},
 	addTask: function(){
-		var txtNew = this.$el.find('#txtNew');
-		this.collection.add({ title: txtNew.val() });
-		console.log(this.collection.models);
+		var txtNew = this.$el.find('#txtNew'),
+			newTask = new TaskModel({ title: txtNew.val() });
+		this.collection.add(newTask);
+		newTask.save();
 	}
 });
 
