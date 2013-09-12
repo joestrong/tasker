@@ -3,7 +3,28 @@ var TaskCollection = Backbone.Collection.extend({
 	model: TaskModel,
 	url: '/task'
 });
-var TaskView = Backbone.View.extend();
+var TaskView = Backbone.View.extend({
+	tagName: 'div',
+	className: 'task',
+	events: {
+		'click .chkDone': 'toggleChecked'
+	},
+	render: function(){
+		this.$el.html('<input type="checkbox" class="chkDone" /><span class="lblText">' + this.model.get('title') + '</span>');
+		return this;
+	},
+	toggleChecked: function(){
+		var checkbox = this.$el.find('.chkDone').get(0),
+			label = this.$el.find('.lblText').get(0);
+		if(checkbox.checked === true){
+			this.model.set('done', true);
+			label.style.textDecoration = 'line-through';
+		}else{
+			this.model.set('done', false);
+			label.style.textDecoration = 'none';
+		}
+	}
+});
 var TaskCollectionView = Backbone.View.extend({
 	initialize: function(){
 		_.bindAll(this, 'render');
@@ -19,7 +40,8 @@ var TaskCollectionView = Backbone.View.extend({
 		var that = this;
 		this.$el.html('');
 		_.each(this.collection.models, function(task){
-			that.$el.append('<div class="task"><input type="checkbox" class="chkDone" />' + task.get('title') + '</div>');
+			var taskView = new TaskView({ model: task });
+			that.$el.append(taskView.render().el);
 		});
 		this.$el.append('<input type="text" id="txtNew" />')
 		this.$el.append('<button id="btnNew" class="btn">New task</button>');
