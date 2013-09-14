@@ -1,2 +1,2 @@
 # tasker
-### a Sails application
+### Simple to use GTD-ish task list
