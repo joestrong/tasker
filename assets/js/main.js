@@ -1,4 +1,13 @@
-var TaskModel = Backbone.Model.extend();
+var TaskModel = Backbone.Model.extend({
+	attributes: {
+		'done': false
+	},
+	toggleChecked: function(){
+		var currentDone = this.get('done');
+		this.set('done', !currentDone);
+		this.save();
+	}
+});
 var TaskCollection = Backbone.Collection.extend({
 	model: TaskModel,
 	url: '/task'
@@ -9,21 +18,21 @@ var TaskView = Backbone.View.extend({
 	events: {
 		'click .chkDone': 'toggleChecked'
 	},
+	initialize: function(){
+		_.bindAll(this, 'render');
+		this.model.bind('change', this.render);
+	},
 	render: function(){
-		this.$el.html('<input type="checkbox" class="chkDone" /><span class="lblText">' + this.model.get('title') + '</span>');
+		var checked = '';
+		if(this.model.get('done') === true){
+			checked = ' checked'
+			this.$el.addClass('done');
+		}
+		this.$el.html('<input type="checkbox" class="chkDone"' + checked + ' /><span class="lblText">' + this.model.get('title') + '</span>');
 		return this;
 	},
 	toggleChecked: function(){
-		var checkbox = this.$el.find('.chkDone').get(0),
-			label = this.$el.find('.lblText').get(0);
-		if(checkbox.checked === true){
-			this.model.set('done', true);
-			label.style.textDecoration = 'line-through';
-		}else{
-			this.model.set('done', false);
-			label.style.textDecoration = 'none';
-		}
-		this.model.save();
+		this.model.toggleChecked();
 	}
 });
 var TaskCollectionView = Backbone.View.extend({
@@ -31,7 +40,6 @@ var TaskCollectionView = Backbone.View.extend({
 		_.bindAll(this, 'render');
 		this.collection = new TaskCollection();
 		this.collection.bind('sync', this.render);
-		this.collection.bind('add', this.render);
 		this.collection.fetch();
 	},
 	events: {
