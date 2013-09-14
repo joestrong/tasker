@@ -1,6 +1,6 @@
 var TaskModel = Backbone.Model.extend({
-	attributes: {
-		'done': false
+	defaults: {
+		deleted: false
 	},
 	toggleChecked: function(){
 		var currentDone = this.get('done');
@@ -10,13 +10,18 @@ var TaskModel = Backbone.Model.extend({
 });
 var TaskCollection = Backbone.Collection.extend({
 	model: TaskModel,
-	url: '/task'
+	url: '/task',
+	getInbox: function(){
+		var models = this.where({ deleted: false });
+		return new TaskCollection(models);
+	}
 });
 var TaskView = Backbone.View.extend({
 	tagName: 'div',
 	className: 'task',
 	events: {
-		'click .chkDone': 'toggleChecked'
+		'click .chkDone': 'toggleChecked',
+		'click .delete': 'delete'
 	},
 	initialize: function(){
 		_.bindAll(this, 'render');
@@ -28,11 +33,18 @@ var TaskView = Backbone.View.extend({
 			checked = ' checked'
 			this.$el.addClass('done');
 		}
-		this.$el.html('<input type="checkbox" class="chkDone"' + checked + ' /><span class="lblText">' + this.model.get('title') + '</span>');
+		this.$el.html('');
+		this.$el.append('<input type="checkbox" class="chkDone"' + checked + ' />');
+		this.$el.append('<span class="lblText">' + this.model.get('title') + '</span>');
+		this.$el.append('<button class="delete">Delete</button>');
 		return this;
 	},
 	toggleChecked: function(){
 		this.model.toggleChecked();
+	},
+	delete: function(){
+		this.model.set('deleted', true);
+		this.model.save();
 	}
 });
 var TaskCollectionView = Backbone.View.extend({
@@ -48,7 +60,7 @@ var TaskCollectionView = Backbone.View.extend({
 	render: function(){
 		var that = this;
 		this.$el.html('');
-		_.each(this.collection.models, function(task){
+		_.each(this.collection.getInbox().models, function(task){
 			var taskView = new TaskView({ model: task });
 			that.$el.append(taskView.render().el);
 		});
